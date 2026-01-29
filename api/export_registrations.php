@@ -55,16 +55,32 @@ try {
         $sportId = $row['sport_id'];
 
         if (array_key_exists($sportId, $groupedData)) {
-            // Format Name: FULLNAME Firstname Middlename <i>(Nickname)</i>
-            $formattedName = htmlspecialchars($row['full_name']); // Escape main name
+            // Format Name: SURNAME Firstname Middlename (Nickname) (Category)
+            // Example: MUSTAPHA Damilol Olumide (Damilo1) or JUSTIN Pius-amo (Jay) (M 7)
 
+            $fullName = $row['full_name'];
+            $parts = explode(' ', trim($fullName));
+
+            // First part is surname (make it UPPERCASE)
+            $surname = strtoupper($parts[0]);
+
+            // Rest is first/middle names (keep original case)
+            $otherNames = implode(' ', array_slice($parts, 1));
+
+            // Build formatted name
+            $formattedName = htmlspecialchars($surname);
+            if ($otherNames) {
+                $formattedName .= ' ' . htmlspecialchars($otherNames);
+            }
+
+            // Add nickname in italics if present
             if (!empty($row['recognition_name'])) {
                 $formattedName .= " <i>(" . htmlspecialchars($row['recognition_name']) . ")</i>";
             }
 
-            // Append Category for Athletics and Indoor
+            // Add category inline for Athletics and Indoor (not on new line)
             if (($sportId === 'athletics' || $sportId === 'indoor') && !empty($row['category'])) {
-                $formattedName .= "<br><span style='font-size:0.9em; color:#555;'>[" . htmlspecialchars($row['category']) . "]</span>";
+                $formattedName .= " (" . htmlspecialchars($row['category']) . ")";
             }
 
             $groupedData[$sportId][] = $formattedName;
@@ -84,10 +100,10 @@ try {
     echo "<html><head><meta charset='UTF-8'></head><body>";
     echo "<table border='1'>";
 
-    // Header Row
-    echo "<tr style='background-color:#4a6fa5; color:white; font-weight:bold;'>";
+    // Header Row - Green background like reference
+    echo "<tr style='background-color:#2d5016; color:white; font-weight:bold; text-align:center;'>";
     foreach ($columns as $label) {
-        echo "<th style='padding:10px;'>$label</th>";
+        echo "<th style='padding:10px; border:1px solid #ccc;'>$label</th>";
     }
     echo "</tr>";
 
